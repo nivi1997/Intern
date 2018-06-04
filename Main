@@ -1,0 +1,41 @@
+package RestAPI;
+
+import java.util.*;
+
+public class Main {
+	public static void main(String args[]) {
+		Scanner sc=new Scanner(System.in);
+		//String file=sc.next();
+		RestAPIFile raf = new RestAPIFile("C:\\Users\\Administrator\\workspace\\RestAPI\\src\\restApi.xml");
+		while (true) {
+			System.out.println("Enter option\n1]Display\t2]Print API\t3]Print Parameter\t4]Check URL\t5]Print Mandatory Parameters");
+			//Scanner sc = new Scanner(System.in);
+			String mod_name;
+			int choice = sc.nextInt();
+			switch (choice) {
+			case 1:
+				raf.display();
+				break;
+			case 2:
+				mod_name = sc.next();
+				raf.printAPI(mod_name);
+				break;
+			case 3:
+				mod_name = sc.next();
+				String Api = sc.next();
+				raf.printParameters(mod_name, Api);
+				break;
+			case 4:
+				String url = sc.next();
+				raf.isCorrectURL(url);
+				break;
+			case 5:
+				raf.printMandatoryParams();
+				break;
+			default:
+				System.out.println("Ïnvalid Input");
+				break;
+			}
+		}
+	}
+}
