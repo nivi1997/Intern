@@ -1,0 +1,43 @@
+package BSTree;
+
+import java.util.Scanner;
+
+public class BST {
+	public static void main(String args[]) {
+		Tree tree = new Tree();
+		Scanner sc = new Scanner(System.in);
+		while (true) {
+			System.out.println("1]Insert\t2]Display\t3]Rotate\t4]Delete\t5]Search\t6:Top View");
+			int choice = sc.nextInt();
+			switch (choice) {
+			case 1:
+				int data = sc.nextInt();
+				tree.insert(data);
+				break;
+			case 2:
+				tree.display();
+				break;
+			case 3:
+				tree.rotate();
+				break;
+			case 4:
+				int dat=sc.nextInt();
+				tree.delete(dat);
+				break;
+			case 5:
+				int ele=sc.nextInt();
+				if(tree.search(ele))
+					System.out.println("Element Found");
+				else
+					System.out.println("Element Not Found");
+				break;
+			case 6:
+				tree.viewTop();
+				break;
+			default:
+				System.out.print("Invalid input");
+				break;
+			}
+		}
+	}
+}

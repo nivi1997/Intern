@@ -1,0 +1,238 @@
+package BSTree;
+
+import java.util.*;
+
+
+
+public class Tree {
+	Integer data;
+	Tree left;
+	Tree right;
+
+	public Tree() {
+		data = null;
+		System.out.println("DATA" + data);
+		left = null;
+		right = null;
+	}
+
+	public Tree(int data) {
+		this.data = new Integer(data);
+		this.left = null;
+		this.right = null;
+	}
+
+	void insert(int data) {
+		Tree temp = new Tree(data);
+		Tree tr, t;
+		tr = this;
+		t = null;
+		if (tr.data == null) {
+			tr.data = new Integer(temp.data);
+			return;
+		}
+		do {
+			// System.out.println("NO--->"+tr.data);
+			if (tr == null) {
+				if (Integer.valueOf(t.data) < Integer.valueOf(temp.data))
+					t.right = temp;
+				else
+					t.left = temp;
+				tr = temp;
+				// System.out.println("INIT ADDR==>"+tr);
+				// tr=t;
+				// System.out.println("LAST ADDR==>"+tr);
+				System.out.println("Inserted");
+				break;
+			}
+			/*
+			 * else if(Integer.valueOf(tr.data)==0) { tr=temp; }
+			 */
+			else if (Integer.valueOf(tr.data) > Integer.valueOf(temp.data)) {
+				System.out.println("Inserted Left");
+				t = tr;
+				tr = tr.left;
+			} else if (Integer.valueOf(tr.data) < Integer.valueOf(temp.data)) {
+				System.out.println("Inserted Right");
+				t = tr;
+				tr = tr.right;
+			} else if (Integer.valueOf(tr.data) == Integer.valueOf(temp.data)) {
+				System.out.println("Duplicate element");
+				break;
+			}
+		} while (true);
+	}
+
+	void display() {
+		if (this != null) {
+			// System.out.println("ADDR===>"+this);
+			if (this.left != null)
+				this.left.display();
+			System.out.println(Integer.valueOf(this.data));
+			if (this.right != null)
+				this.right.display();
+		}
+	}
+
+	void rotate() {
+		if (this != null) {
+			Tree temp = new Tree();
+			temp = this.left;
+			this.left = this.right;
+			this.right = temp;
+			if (this.left != null)
+				this.left.rotate();
+			if (this.right != null)
+				this.right.rotate();
+		}
+	}
+
+	void arrange(Tree tree) {
+
+	}
+
+	Tree maxleft(Tree tr) {
+		// int ret = 0;
+		while (tr.right != null) {
+			tr = tr.right;
+		}
+		return tr;
+	}
+
+	void delete(int data) {
+		Tree tree = this;
+		Tree parent = null;
+		Tree tr = null;
+		System.out.println("" + tree);
+		while (tree != null) {
+			if (tree.data < data) {
+				parent = tree;
+				tree = tree.right;
+			} else if (tree.data > data) {
+				parent = tree;
+				tree = tree.left;
+			} else if (tree.data == data) {
+				System.out.println(data);
+				break;
+
+			}
+		}
+		System.out.println(" " + tree + " " + parent);
+
+		boolean flag1 = false;
+		if (parent.data < tree.data)// right child
+			flag1 = true;
+		// else//left child flag=false;
+
+		if (tree.left == null && tree.right == null) {
+			if (parent.data < tree.data)
+				parent.right = null;
+			else
+				parent.left = null;
+		}
+
+		else if (tree.left == null) {
+			if (flag1)
+				parent.right = tree.right;
+			else
+				parent.left = tree.right;
+		}
+
+		else if (tree.right == null) {
+			if (flag1)
+				parent.right = tree.left;
+			else
+				parent.left = tree.left;
+		} else {
+			boolean flag = false;
+			while (!(tree.right == null && tree.left == null)) {
+				tr = maxleft(tree.left);
+				tree.data = tr.data + tree.data;
+				tr.data = tree.data - tr.data;
+				tree.data = tree.data - tr.data;
+				parent = this.getParent(tree.data);
+				tree = tr;
+				flag = true;
+				System.out.println("Parent==>" + parent + "\tTree==>" + tree);
+			}
+			if (flag) {
+				System.out.println("ÄSSII");
+				parent.left = null;
+			} else
+				parent.right = null;
+		}
+	}
+
+	Tree getParent(int data) {
+		Tree parent = null;
+		Tree tr = this;
+		while (tr != null) {
+			parent = tr;
+			if (tr.data < data)
+				tr = tr.right;
+			else if (tr.data > data)
+				tr = tr.left;
+			else
+				return tr;
+		}
+		return parent;
+	}
+
+	/*
+	 * void leftTree(Queue queue,Tree tree,int height) {
+	 * 
+	 * } void rightTree(Queue queue,Tree tree,int height) {
+	 * 
+	 * }
+	 */
+	void viewTop()
+	{
+		Nodes.print(this);
+	}
+	void view(Tree tree) {
+		Queue<Tree> queue = new LinkedList<Tree>();
+		int height = 0;
+		Map<Integer, Integer> map = new HashMap<Integer, Integer>();
+		// leftTree(queue,tree.left,height--);
+		// rightTree(queue,tree.right,height++);
+
+		while (!queue.isEmpty()) {
+			Tree rm = queue.remove();
+			if (rm.left != null) {
+				height--;
+				if (!map.containsKey(height))
+				{
+					System.out.println(rm.left.data);
+					map.put(height, rm.left.data);
+				}
+				queue.add(rm.left);
+			}
+			if (rm.right != null) {
+				height++;
+				if (!map.containsKey(height))
+				{
+					map.put(height, rm.left.data);
+					System.out.println(rm.right.data);
+				}queue.add(rm.right);
+			}
+		}
+		// System.out.println(tree.data);
+
+	}
+
+	boolean search(int data) {
+		Tree tree = this;
+		System.out.println("" + tree);
+		while (tree != null) {
+			if (tree.data < data) {
+				tree = tree.right;
+			} else if (tree.data > data) {
+				tree = tree.left;
+			} else if (tree.data == data) {
+				System.out.println(data);
+				return true;
+			}
+		}
+		return false;
+	}
+}
