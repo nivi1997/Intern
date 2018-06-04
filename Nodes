@@ -1,0 +1,42 @@
+package BSTree;
+
+import java.util.*;
+
+public class Nodes {
+	Tree tr;
+	int height;
+
+	static void print(Tree tree) {
+		Set<Integer> height = new HashSet<Integer>();
+		Queue<Nodes> queue = new LinkedList<Nodes>();
+		Nodes nodeRight = new Nodes();
+		Nodes nodeLeft = new Nodes();
+		Nodes node = new Nodes();
+		node.tr = tree;
+		node.height = 0;
+		queue.add(node);
+		while (!queue.isEmpty()) {
+			node =queue.remove();
+			Tree tr=node.tr;
+			//System.out.println("DATA==>"+tr.data+"\tHeight==>"+node.height);
+			if (!height.contains(node.height)) {
+				System.out.println(tr.data);
+				height.add(node.height);
+			}		
+			if (tr.left != null) {
+				//System.out.println(tr);
+				nodeLeft.tr = tr.left;
+				nodeLeft.height = node.height - 1;
+				queue.add(nodeLeft);
+			}
+			if (tr.right != null) {
+				//System.out.println(tr);
+				nodeRight.tr = tr.right;
+				nodeRight.height = node.height + 1;
+				queue.add(nodeRight);
+			}
+			System.out.println("New Iteration");
+		}
+	}
+}
+
