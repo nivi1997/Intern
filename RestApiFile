@@ -1,0 +1,395 @@
+package RestAPI;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
+import javax.xml.parsers.DocumentBuilder;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
+
+import RestAPI.TagClasses.*;
+
+import org.w3c.dom.Node;
+import org.w3c.dom.Element;
+import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class RestAPIFile {
+	DefaultMutableTreeNode root; // File is stored into the tree
+	TagClasses cs; // contains the classes API,Module and Parameter
+
+	// Constructor with Xml file name as Parameter
+
+	RestAPIFile(String file) {
+		parse(file);
+	}
+
+	// Method that parses the Xml File and stores the content into the tree
+
+	private void parse(String file_name) {
+		Element element;
+		cs = new TagClasses();
+		API api_properties[] = new API[50];
+		Module module_properties[] = new Module[9];
+		Parameter parameter_properties[] = new Parameter[50];
+		root = new DefaultMutableTreeNode("RestAPI");
+
+		try {
+			File file = new File(file_name);
+			DocumentBuilderFactory docBuildFactory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder docBuilder = docBuildFactory.newDocumentBuilder();
+			Document document = docBuilder.parse(file);
+
+			NodeList modules = document.getElementsByTagName("Module");
+			for (int i = 0; i < modules.getLength(); i++)// for every module
+			{
+				Node module = modules.item(i);
+				if (module.getNodeType() == Node.ELEMENT_NODE) {
+					element = (Element) module;
+					module_properties[i] = cs.new Module();
+					module_properties[i].name = element.getAttribute("Name");
+					module_properties[i].description = element.getAttribute("Description");
+					DefaultMutableTreeNode module_node = new DefaultMutableTreeNode(module_properties[i]);
+					root.insert(module_node, i);
+					NodeList apis = element.getElementsByTagName("API");
+
+					for (int j = 0; j < apis.getLength(); j++)// for every api
+					{
+						Node api = apis.item(j);
+						if (api.getNodeType() == Node.ELEMENT_NODE) {
+							element = (Element) api;
+							api_properties[i] = cs.new API();
+							api_properties[i].name = element.getAttribute("Name");
+							api_properties[i].description = element.getAttribute("Description");
+							api_properties[i].method = element.getAttribute("Method");
+
+							DefaultMutableTreeNode api_node = new DefaultMutableTreeNode(api_properties[i]);
+							module_node.add(api_node);
+
+							NodeList parameters = element.getElementsByTagName("Parameter");
+
+							for (int k = 0; k < parameters.getLength(); k++) {// for
+																				// every
+																				// parameter
+								Node parameter = parameters.item(k);
+								if (parameter.getNodeType() == Node.ELEMENT_NODE) {
+									element = (Element) parameter;
+									parameter_properties[i] = cs.new Parameter();
+									parameter_properties[i].name = element.getAttribute("Name");
+									parameter_properties[i].description = element.getAttribute("Description");
+									parameter_properties[i].type = element.getAttribute("Type");
+									parameter_properties[i].constraint = element.getAttribute("Constraints");
+									parameter_properties[i].error_message = element.getAttribute("Error_message");
+									parameter_properties[i].constraint_type = element.getAttribute("Constraint_type");
+									;
+									if (element.getAttribute("Mandatory").equals("true")) {
+										parameter_properties[i].mandatory = true;
+									} else {
+										parameter_properties[i].mandatory = false;
+									}
+									DefaultMutableTreeNode param_node = new DefaultMutableTreeNode(
+											parameter_properties[i]);
+									api_node.add(param_node);
+								}
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+
+		}
+	}
+
+	// Displays the contents of file stored in tree
+
+	void display() {
+		try {
+			int no_of_module = root.getChildCount();
+			// Display module name
+			for (int i = 0; i < no_of_module; i++) {
+				TreeNode module_node = root.getChildAt(i);
+				DefaultMutableTreeNode mod = (DefaultMutableTreeNode) module_node;
+				Module module = (Module) mod.getUserObject();
+
+				System.out.println("Mod_Name:" + module.name);
+				if (!module.description.isEmpty()) {
+					System.out.print("\tDescription:" + module.description);
+				}
+				int no_of_api = module_node.getChildCount();
+				System.out.println("\n\tAPI");
+
+				// Display API's of respective Modules
+				for (int j = 0; j < no_of_api; j++) {
+					TreeNode api_node = module_node.getChildAt(j);
+					DefaultMutableTreeNode ap = (DefaultMutableTreeNode) api_node;
+					API api = (API) ap.getUserObject();
+
+					System.out.println("\n\tName:" + api.name + "\tMethod:" + api.method);
+					if (!api.description.isEmpty())
+						System.out.print("Description:" + api.description);
+
+					System.out.println("\n\t\tParameter\n\t\t");
+
+					// Display Parameter's of respective API's
+					int no_of_param = api_node.getChildCount();
+					for (int k = 0; k < no_of_param; k++) {
+						TreeNode parameter_node = api_node.getChildAt(k);
+						DefaultMutableTreeNode par = (DefaultMutableTreeNode) parameter_node;
+						Parameter param = (Parameter) par.getUserObject();
+
+						if (param.mandatory == true)
+							System.out.print("*");
+						System.out.print(
+								"Name:" + param.name + "\tType:" + param.type + "\tMandatory:" + param.mandatory);
+						if (!param.description.isEmpty())
+							System.out.print("\tDescription:" + param.description);
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	void printAPI(String mod_name) {
+		int no_of_module = root.getChildCount();
+		for (int i = 0; i < no_of_module; i++) {
+			TreeNode module_node = root.getChildAt(i);
+			DefaultMutableTreeNode mod = (DefaultMutableTreeNode) module_node;
+			Module module = (Module) mod.getUserObject();
+			if (module.name.equals(mod_name)) {
+				int no_of_api = module_node.getChildCount();
+				for (int j = 0; j < no_of_api; j++) {
+					TreeNode api_node = module_node.getChildAt(j);
+					DefaultMutableTreeNode ap = (DefaultMutableTreeNode) api_node;
+					API api = (API) ap.getUserObject();
+					System.out.println("Name:" + api.name + "\tMethod" + api.method);
+					if (!api.description.isEmpty()) {
+						System.out.print("Description:" + api.description);
+					}
+				}
+			}
+		}
+	}
+
+	void printParameters(String mod_name, String Api) {
+		int no_of_mod = root.getChildCount();
+		for (int i = 0; i < no_of_mod; i++) {
+			TreeNode module_node = root.getChildAt(i);
+			DefaultMutableTreeNode mod = (DefaultMutableTreeNode) module_node;
+			Module module = (Module) mod.getUserObject();
+			System.out.println(module.name);
+			if (module.name.equals(mod_name)) {
+				int no_of_api = module_node.getChildCount();
+				for (int j = 0; j < no_of_api; j++) {
+					TreeNode api_node = module_node.getChildAt(j);
+					DefaultMutableTreeNode ap = (DefaultMutableTreeNode) api_node;
+					API api = (API) ap.getUserObject();
+					if (api.name.equals(Api)) {
+						int no_of_param = api_node.getChildCount();
+						for (int k = 0; k < no_of_param; k++) {
+							TreeNode parameter_node = api_node.getChildAt(k);
+							DefaultMutableTreeNode par = (DefaultMutableTreeNode) parameter_node;
+							Parameter param = (Parameter) par.getUserObject();
+							if (param.mandatory == true)
+								System.out.println("*");
+							System.out.println(
+									"\nName:" + param.name + "\tType:" + param.type + "\tMandatory:" + param.mandatory);
+							if (!param.description.isEmpty())
+								System.out.print("\tDescription:" + param.description);
+						}
+					}
+				}
+			}
+
+		}
+	}
+
+	void isCorrectURL(String url) {
+		String tag[] = url.split("/|\\?");// contains api
+											// ,json,<module-name>,<Api-name>
+		String param[] = url.split("&|=|\\?");// contains parameter name and its
+												// value from index value 1.
+		if (!tag[1].equals("api") || !tag[2].equals("json")) {
+			System.out.println("Start the url as /api/json");
+		} else {
+			int op = checkURL(root, tag, param);
+
+			if (op == 1) {
+				System.out.println("Invalid Module Name");
+			} else if (op == 2) {
+				System.out.println("No such API in given module Name");
+			}
+		}
+	}
+
+	void printMandatoryParams() {
+		int no_of_module = root.getChildCount();
+		for (int i = 0; i < no_of_module; i++) {
+			TreeNode module_node = root.getChildAt(i);
+			DefaultMutableTreeNode mod = (DefaultMutableTreeNode) module_node;
+			Module module = (Module) mod.getUserObject();
+			System.out.println("Mod_Name:" + module.name);
+			int no_of_api = module_node.getChildCount();
+			for (int j = 0; j < no_of_api; j++) {
+				TreeNode api_node = module_node.getChildAt(j);
+				DefaultMutableTreeNode ap = (DefaultMutableTreeNode) api_node;
+				API api = (API) ap.getUserObject();
+				System.out.println("\nAPI_Name:" + api.name);
+				int no_of_param = api_node.getChildCount();
+				int count = 0;
+				for (int k = 0; k < no_of_param; k++) {
+					TreeNode parameter_node = api_node.getChildAt(k);
+					DefaultMutableTreeNode par = (DefaultMutableTreeNode) parameter_node;
+					Parameter param = (Parameter) par.getUserObject();
+					if (param.mandatory == true) {
+						count++;
+						System.out.println("\n\nParameter_Name:" + param.name + "\tType:" + param.type + "\tMandatory:"
+								+ param.mandatory);
+						if (!param.description.isEmpty())
+							System.out.print("\tDescription:" + param.description);
+					}
+				}
+				if (count == 0) {
+					System.out.println("No Mandatory Prameter");
+				}
+			}
+		}
+	}
+
+	// Checks if the parameter value is Html or not
+
+	public boolean isHtml(String parameter) {
+		System.out.println(parameter);
+		String regex1 = "<([\\w]+)[^>]*>(.*)</\\1>";
+		String regex2 = "<([\\w]+).*/>(.*)";
+		Pattern pattern1 = Pattern.compile(regex1);
+		Pattern pattern2 = Pattern.compile(regex2);
+		do {
+			Matcher match1 = pattern1.matcher(parameter);
+			Matcher match2 = pattern2.matcher(parameter);
+			if (match1.matches()) {
+				parameter = match1.group(2);
+			} else if (match2.matches()) {
+				// no_of_match++;
+				parameter = match2.group(2);
+			} else {
+				System.out.println("Not a html");
+				return false;
+			}
+		} while (!parameter.isEmpty());
+		return true;
+	}
+
+	// Checks if parameter and their values are valid satisfying all
+	// constraints.
+
+	public int parameterCheck(String param[], DefaultMutableTreeNode api_node) {
+		int found[] = new int[param.length];
+		int k = 0;// parameters that matches with the parameters given in url
+		int no_of_param = api_node.getChildCount();
+		for (int i = 0; i < no_of_param; i++) {
+			int prev = k;
+
+			for (int j = 1; j < param.length; j = j + 2) {
+				if (isHtml(param[j + 1])) {
+					System.out.println("html");
+					System.exit(0);
+				}
+				DefaultMutableTreeNode param_node = (DefaultMutableTreeNode) api_node.getChildAt(i);
+				Parameter para = (Parameter) param_node.getUserObject();
+				if (param[j].equals(para.name)) {
+					found[k++] = j;
+					String constraint_type = para.constraint_type;
+					String constraint = para.constraint;
+					if (constraint_type.equals("Length")) {
+						int length = Integer.parseInt(constraint);
+						if (param[j + 1].length() != length)
+							System.out.println(para.error_message);
+					} else if (constraint_type.equals("Regx")) {
+						System.out.println(Pattern.matches((String) constraint, (String) param[j + 1]));
+						if (Pattern.matches(constraint, param[j + 1]) == false) {
+							System.out.println(para.error_message);
+						}
+					} else if (constraint_type.equals("Limit")) {
+						String limit[] = constraint.split("\\.\\.");
+						int lower_limit = Integer.parseInt(limit[0]);
+						int upper_limit = Integer.parseInt(limit[1]);
+						//System.out.println(param[j + 1]);
+						if (lower_limit <= Integer.parseInt(param[j + 1])) {
+							if (!(Integer.parseInt(param[j + 1]) < upper_limit)) {
+								System.out.println(para.error_message + "Parameter Value Exceeded the limit");
+							}
+						} else{
+							System.out.println(para.error_message + "Parameter value is less than the limit");
+						}
+						} else if (constraint_type.equals("Set")) {
+						String set_contents[] = constraint.split(",");
+						if (isContained_Set(param[j + 1], set_contents) == false) {
+							System.out.println(para.error_message);
+						}
+					}
+					break;
+				}
+			}
+			// if manadatory parameter is not given a value return -1
+
+			if (prev == k) {
+				DefaultMutableTreeNode param_node = (DefaultMutableTreeNode) api_node.getChildAt(i);
+				Parameter parameter = (Parameter) param_node.getUserObject();
+				if (parameter.mandatory) {
+					return -1;
+				}
+			}
+		}
+		// if additional paramter values that does not belongs to the respective
+		// api is given return 0
+
+		if (k < param.length / 2)
+			return 0;
+		return 1;// if parameter are valid return 1
+	}
+
+	// if the string str is contained in str_arr[] return true
+
+	public boolean isContained_Set(String str, String str_arr[]) {
+		for (int i = 0; i < str_arr.length; i++) {
+			if (str.equals(str_arr[i])) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/*
+	 * tag[] has module and Api name param[] has parameter and their values root
+	 * has stored data checks if <module-name>,<Api-name> are valid Add calls
+	 * parameterCheck to check for parameters
+	 */
+	public int checkURL(DefaultMutableTreeNode root, String tag[], String param[]) {
+		int no_of_modules = root.getChildCount();
+		for (int i = 0; i < no_of_modules; i++) {
+			TreeNode module_node = root.getChildAt(i);
+			if (module_node.toString().equals(tag[3])) {
+				int no_of_api = module_node.getChildCount();
+				for (int j = 0; j < no_of_api; j++) {
+					TreeNode api_node = module_node.getChildAt(j);
+					if (api_node.toString().equals(tag[4])) {
+						int p = parameterCheck(param, (DefaultMutableTreeNode) api_node);
+						if (p == 0) {
+							System.out.println("Invalid Parameters");
+						} else if (p < 0) {
+							System.out.println("Mandatory Parameter not included");
+						}
+						return 3;// valid URL
+					}
+				}
+				return 2;// Api-name is Invalid
+			}
+		}
+		return 1;// Module-name is Invalid
+	}
+
+}
